@@ -3,14 +3,14 @@ using namespace std;
 
 #include <opencv2\opencv.hpp>
 
-float theta = 0.00f;
+
 float eps = 0.00001f;
 
 const int offset[4][2] = { {1, 0}, {-1, 0}, {0, 1}, {0, -1} };
 
 int main(int argc, char** argv) {
-	if(argc < 2) {
-		cout << "usage: HornAlgorithm.exe [input image] [output image]" << endl;
+	if(argc < 3) {
+		cout << "usage: HornAlgorithm.exe [input image] [output image] [threshold]" << endl;
 		return -1;
 	}
 
@@ -23,47 +23,56 @@ int main(int argc, char** argv) {
 	int height = img.rows;
 	int channel = img.channels();
 	img.convertTo(img, CV_32FC3, 1.0 / 255.0);
+	cout << "Image file \"" << argv[1] << "\" has been loaded." << endl;
+
+	float theta = (argc > 3) ? atof(argv[3]) : 0.05f;
+	printf("threshold = %f\n", theta);
 
 	cv::Mat gray, logim, laplace;
-	cv::cvtColor(img, gray, CV_BGR2GRAY);
-	
-	// 輝度の対数を取る
-	logim = cv::Mat(height, width, CV_32FC1);
-	for(int y=0; y<height; y++) {
-		for(int x=0; x<width; x++) {
-			logim.at<float>(y, x) = logf(gray.at<float>(y, x) + eps);
-		}
-	}
-	
-	// ラプラシアンフィルタをかける
-	laplace = cv::Mat(height, width, CV_32FC1);
-	for(int y=0; y<height; y++) {
-		for(int x=0; x<width; x++) {
-			int count = 0;
-			float sum = 0.0f;
-			for(int i=0; i<4; i++) {
-				int xx = x + offset[i][0];
-				int yy = y + offset[i][1];
-				if(xx >= 0 && yy >= 0 && xx < width && yy < height) {
-					count += 1;
-					sum += logim.at<float>(yy, xx);
-				}
-			}
-			laplace.at<float>(y, x) = sum - (float)count * logim.at<float>(y, x);
-		}
-	}
-	
-	// 閾値処理
-	for(int x=0; x<width; x++) {
-		for(int y=0; y<height; y++) {
-			if(fabs(laplace.at<float>(y, x)) < theta) {
-				laplace.at<float>(y, x) = 0.0f;
-			}
-		}
-	}
-
 	cv::Mat out = cv::Mat(height, width, CV_32FC3);
 	for(int c=0; c<channel; c++) {
+		gray = cv::Mat(height, width, CV_32FC1);
+		for(int y=0; y<height; y++) {
+			for(int x=0; x<width; x++) {
+				gray.at<float>(y, x) = img.at<float>(y, x*channel+c);
+			}
+		}
+	
+		// 輝度の対数を取る
+		logim = cv::Mat(height, width, CV_32FC1);
+		for(int y=0; y<height; y++) {
+			for(int x=0; x<width; x++) {
+				logim.at<float>(y, x) = logf(gray.at<float>(y, x) + eps);
+			}
+		}
+	
+		// ラプラシアンフィルタをかける
+		laplace = cv::Mat(height, width, CV_32FC1);
+		for(int y=0; y<height; y++) {
+			for(int x=0; x<width; x++) {
+				int count = 0;
+				float sum = 0.0f;
+				for(int i=0; i<4; i++) {
+					int xx = x + offset[i][0];
+					int yy = y + offset[i][1];
+					if(xx >= 0 && yy >= 0 && xx < width && yy < height) {
+						count += 1;
+						sum += logim.at<float>(yy, xx);
+					}
+				}
+				laplace.at<float>(y, x) = sum - (float)count * logim.at<float>(y, x);
+			}
+		}
+	
+		// 閾値処理
+		for(int x=0; x<width; x++) {
+			for(int y=0; y<height; y++) {
+				if(fabs(laplace.at<float>(y, x)) < theta) {
+					laplace.at<float>(y, x) = 0.0f;
+				}
+			}
+		}
+	
 		// 積分処理
 		cv::Mat T1 = cv::Mat(height, width, CV_32FC1);
 		for(int y=0; y<height; y++) {
@@ -72,8 +81,9 @@ int main(int argc, char** argv) {
 			}
 		}
 
+		// ガウス・ザイデル法
 		cv::Mat T2 = cv::Mat(height, width, CV_32FC1);
-		int iter = 10;
+		int iter = 20;
 		while(iter--) {
 			double error = 0.0;
 			double div = 0.0;
