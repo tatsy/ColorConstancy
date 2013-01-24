@@ -9,7 +9,7 @@ const int offset[4][2] = { {1, 0}, {-1, 0}, {0, 1}, {0, -1} };
 
 int main(int argc, char** argv) {
 	if(argc < 3) {
-		cout << "usage: HornAlgorithm.exe [input image] [output image] [threshold]" << endl;
+		cout << "usage: BlakeAlgorithm.exe [input image] [output image] [threshold]" << endl;
 		return -1;
 	}
 
@@ -24,7 +24,7 @@ int main(int argc, char** argv) {
 	img.convertTo(img, CV_32FC3, 1.0 / 255.0);
 	cout << "Image file \"" << argv[1] << "\" has been loaded." << endl;
 
-	float theta = (argc > 3) ? atof(argv[3]) : 0.05f;
+	float theta = argc > 3 ? atof(argv[3]) : 0.003f;
 	printf("threshold = %f\n", theta);
 
 	cv::Mat gray, logim, laplace;
@@ -37,43 +37,39 @@ int main(int argc, char** argv) {
 				gray.at<float>(y, x) = img.at<float>(y, x*channel+c);
 			}
 		}
-	
-		// 輝度の対数を取る
+
+		// 輝度の対数をとる
 		logim = cv::Mat(height, width, CV_32FC1);
 		for(int y=0; y<height; y++) {
 			for(int x=0; x<width; x++) {
 				logim.at<float>(y, x) = logf(gray.at<float>(y, x) + eps);
 			}
 		}
-	
-		// ラプラシアンフィルタをかける
-		laplace = cv::Mat(height, width, CV_32FC1);
-		for(int y=0; y<height; y++) {
-			for(int x=0; x<width; x++) {
-				int count = 0;
-				float sum = 0.0f;
-				for(int i=0; i<4; i++) {
-					int xx = x + offset[i][0];
-					int yy = y + offset[i][1];
-					if(xx >= 0 && yy >= 0 && xx < width && yy < height) {
-						count += 1;
-						sum += logim.at<float>(yy, xx);
-					}
-				}
-				laplace.at<float>(y, x) = sum - (float)count * logim.at<float>(y, x);
-			}
-		}
-	
-		// 閾値処理
-		for(int x=0; x<width; x++) {
-			for(int y=0; y<height; y++) {
-				if(fabs(laplace.at<float>(y, x)) < theta) {
-					laplace.at<float>(y, x) = 0.0f;
+
+		// 勾配場の計算と閾値処理
+		cv::Mat grad = cv::Mat::zeros(height, width, CV_32FC2);
+		for(int y=0; y<height-1; y++) {
+			for(int x=0; x<width-1; x++) {
+				float dx = logim.at<float>(y, x+1) - logim.at<float>(y, x);
+				float dy = logim.at<float>(y+1, x) - logim.at<float>(y, x);
+				if(dx * dx + dy * dy > theta * theta) {
+					grad.at<float>(y, x*2+0) = dx;
+					grad.at<float>(y, x*2+1) = dy;
 				}
 			}
 		}
-	
-		// 積分処理
+
+		// 勾配場のgradientを計算
+		cv::Mat laplace = cv::Mat::zeros(height, width, CV_32FC1);
+		for(int y=1; y<height; y++) {
+			for(int x=1; x<width; x++) {
+				float ddx = grad.at<float>(y, x*2+0) - grad.at<float>(y, (x-1)*2+0);
+				float ddy = grad.at<float>(y, x*2+1) - grad.at<float>(y-1, x*2+1);
+				laplace.at<float>(y, x) = ddx + ddy;
+			}
+		}
+
+		// 積分の計算
 		cv::Mat T1 = cv::Mat(height, width, CV_32FC1);
 		for(int y=0; y<height; y++) {
 			for(int x=0; x<width; x++) {
@@ -140,4 +136,5 @@ int main(int argc, char** argv) {
 
 	out.convertTo(out, CV_8UC3, 255.0);
 	cv::imwrite(argv[2], out);
+
 }

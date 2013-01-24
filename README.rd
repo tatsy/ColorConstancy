@@ -1,0 +1,1 @@
+This is a set of implementation for several color constancy algorithms, which contains Horn's algorithm and Blake's algorithm. For the future, other algorithms will be added.
