@@ -78,7 +78,6 @@ int main(int argc, char** argv) {
 		}
 
 		// ガウス・ザイデル法
-		cv::Mat T2 = cv::Mat(height, width, CV_32FC1);
 		int iter = 20;
 		while(iter--) {
 			double error = 0.0;
@@ -95,18 +94,17 @@ int main(int argc, char** argv) {
 							count += 1;
 						}
 					}
-					T2.at<float>(y, x) = (sum - laplace.at<float>(y, x)) / (float)count;
+					T1.at<float>(y, x) = (sum - laplace.at<float>(y, x)) / (float)count;
 				}
 			}
-			T2.convertTo(T1, CV_32FC1);
 		}
 
 		// 正規化
 		float maxval = -100.0f;
 		for(int y=0; y<height; y++) {
 			for(int x=0; x<width; x++) {
-				if(maxval < T2.at<float>(y, x)) {
-					maxval = T2.at<float>(y, x);
+				if(maxval < T1.at<float>(y, x)) {
+					maxval = T1.at<float>(y, x);
 				}
 			}
 		}
@@ -114,14 +112,14 @@ int main(int argc, char** argv) {
 		printf("maxval = %f\n", maxval);
 		for(int y=0; y<height; y++) {
 			for(int x=0; x<width; x++) {
-				T2.at<float>(y, x) -= maxval;
+				T1.at<float>(y, x) -= maxval;
 			}
 		}
 
 		// 指数をとる計算		
 		for(int y=0; y<height; y++) {
 			for(int x=0; x<width; x++) {
-				float value = T2.at<float>(y, x);
+				float value = T1.at<float>(y, x);
 				out.at<float>(y, x*channel+c) = expf(value - eps);
 			}
 		}
