@@ -3,9 +3,7 @@ using namespace std;
 
 #include <opencv2\opencv.hpp>
 
-float eps = 0.00001f;
-
-const int offset[4][2] = { {1, 0}, {-1, 0}, {0, 1}, {0, -1} };
+#include "../clcnst/clcnst.h"
 
 int main(int argc, char** argv) {
 	if(argc < 3) {
@@ -24,4 +22,34 @@ int main(int argc, char** argv) {
 	img.convertTo(img, CV_32FC3, 1.0 / 255.0);
 	cout << "Image file \"" << argv[1] << "\" has been loaded." << endl;
 
+	cv::Mat out, gauss;
+
+	// 入力画像の対数をとる
+	clcnst::logarithm(img, out);
+
+	// ガウシアン・フィルタをかける
+	clcnst::gaussian(out, gauss, 1.0f, 5);
+
+	// 引き算
+	cv::subtract(out, gauss, out);
+
+	// オフセット
+	cv::subtract(out, cv::Mat::ones(height, width, CV_32FC3), out);
+
+	// 指数を取る
+	clcnst::exponential(out, out);
+
+	// 正規化
+	clcnst::normalize(out, out, 0.0f, 1.0f);
+
+	// 結果の出力
+	cv::namedWindow("Input");
+	cv::namedWindow("Output");
+	cv::imshow("Input", img);
+	cv::imshow("Output", out);
+	cv::waitKey(0);
+	cv::destroyAllWindows();
+
+	out.convertTo(out, CV_8UC3, 255.0);
+	cv::imwrite(argv[2], out);
 }

@@ -35,12 +35,17 @@ public:
 	// Type of arguments must be CV_32FC.
 	__PORT static void laplacian(cv::Mat& input, cv::Mat& output);
 
+	// Apply Gaussian filter.
+	__PORT static void gaussian(cv::Mat& input, cv::Mat& output, float sigma, int ksize);
+
 	// Apply thresholding operation.
 	__PORT static void threshold(cv::Mat& input, cv::Mat& output, float threshold);
 
 	// Normalize output range as the maximum value come to be 1.
 	__PORT static void normalize(cv::Mat& input, cv::Mat& output);
 	
+	// Normalize output range into [lower, upper]
+	__PORT static void normalize(cv::Mat& input, cv::Mat& output, float lower, float upper);
 };
 
 #endif
