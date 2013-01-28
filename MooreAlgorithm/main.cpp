@@ -1,40 +1,41 @@
 #include <iostream>
+#include <string>
 using namespace std;
 
 #include <opencv2\opencv.hpp>
 
 #include "../clcnst/clcnst.h"
 
+float sigma;
+string ifname, ofname, isex;
+
 int main(int argc, char** argv) {
+	// Load input image
+	cout << "[MooreAlgorithm] input file name to load: ";
+	cin >> ifname;
 
-	// Check input command arguments
-	if(argc < 3) {
-		cout << "usage: MooreAlgorithm.exe [input image] [output image] [sigma for Gaussian] [option]" << endl;
-		cout << "Options: " << endl;
-		cout << "  -e : Use extended Moore's algorithm" << endl;
-		return -1;
-	}
-
-	cv::Mat img = cv::imread(argv[1], CV_LOAD_IMAGE_COLOR);
+	cv::Mat img = cv::imread(ifname, CV_LOAD_IMAGE_COLOR);
 	if(img.empty()) {
-		cout << "Failed to load file \"" << argv[1] << "\"." << endl;
+		cout << "Failed to load file \"" << ifname << "\"." << endl;
 		return -1;
 	}
 	int width = img.cols;
 	int height = img.rows;
 	int channel = img.channels();
 	img.convertTo(img, CV_32FC3, 1.0 / 255.0);
-	cout << "Image file \"" << argv[1] << "\" has been loaded." << endl;
-
-	cv::Mat out, gauss;
-
+	
 	// Apply Gaussian filter
-	float sigma = argc > 3 ? (float)atof(argv[3]) : 1.0f;
-	sigma *= (float)max(width, height);
+	cout << "[MooreAlgorithm] input sigma value for Gaussian: ";
+	cin >> sigma;
+	sigma = sigma * max(width, height);
 
+	cv::Mat gauss;
 	cv::GaussianBlur(img, gauss, cv::Size(0, 0), sigma);
 
-	if(argc > 4 && !strcmp(argv[4], "-e")) {
+	// Additional process for extended Moore
+	cout << "[MooreAlgorithm] use extended algorithm? (y/n): ";
+	cin >> isex;
+	if(isex == "y") {
 		cv::Mat gray;
 		cv::cvtColor(img, gray, CV_BGR2GRAY);
 
@@ -61,6 +62,7 @@ int main(int argc, char** argv) {
 	}
 
 	// Subtraction
+	cv::Mat out;
 	cv::subtract(img, gauss, out);
 
 	// Offset reflectance
@@ -78,6 +80,8 @@ int main(int argc, char** argv) {
 	cv::destroyAllWindows();
 
 	// Save output image
+	cout << "[MooreAlgorithm] save as: ";
+	cin >> ofname;
 	out.convertTo(out, CV_8UC3, 255.0);
-	cv::imwrite(argv[2], out);
+	cv::imwrite(ofname, out);
 }

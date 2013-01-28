@@ -218,7 +218,6 @@ __PORT void clcnst::normalize(cv::Mat& input, cv::Mat& output, float lower, floa
 			}
 		}
 	}
-	printf("minval = %f, maxval = %f\n", minval, maxval);
 
 	float ratio = (upper - lower) / (maxval - minval);
 	for(int c=0; c<channel; c++) {

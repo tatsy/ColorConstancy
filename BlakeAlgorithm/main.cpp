@@ -1,61 +1,57 @@
 #include <iostream>
+#include <string>
 using namespace std;
 
 #include <opencv2\opencv.hpp>
 
 #include "../clcnst/clcnst.h"
 
-int main(int argc, char** argv) {
-	if(argc < 3) {
-		cout << "usage: BlakeAlgorithm.exe [input image] [output image] [threshold]" << endl;
-		return -1;
-	}
+float threshold;
+string ifname, ofname;
 
-	cv::Mat img = cv::imread(argv[1], CV_LOAD_IMAGE_COLOR);
+int main(int argc, char** argv) {
+	// Load input file
+	cout << "[BlakeAlgorithm] input file name: ";
+	cin >> ifname;
+
+	cv::Mat img = cv::imread(ifname, CV_LOAD_IMAGE_COLOR);
 	if(img.empty()) {
-		cout << "Failed to load file \"" << argv[1] << "\"." << endl;
+		cout << "Failed to load file \"" << ifname << "\"." << endl;
 		return -1;
 	}
 	int width = img.cols;
 	int height = img.rows;
 	int channel = img.channels();
 	img.convertTo(img, CV_32FC3, 1.0 / 255.0);
-	cout << "Image file \"" << argv[1] << "\" has been loaded." << endl;
 
-	float theta = argc > 3 ? (float)atof(argv[3]) : 0.05f;
-	printf("threshold = %f\n", theta);
+	// Obtain threshold value by keyborad interaction
+	cout << "[BlakeAlgorithm] input threshold value (default = 0.10): ";
+	cin >> threshold;
 
-	cv::Mat out, laplace;
-
-	// 入力の対数をとる
+	// Compute logarithm of input image
+	cv::Mat out;
 	clcnst::logarithm(img, out);
 
-	// ラプラシアンフィルタ
-	clcnst::laplacian(out, laplace);
-
-	// 閾値処理
-	clcnst::threshold(laplace, laplace, theta);
-
-	// 閾値をはさんだラプラシアン・フィルタ
-	laplace = cv::Mat::zeros(height, width, CV_32FC3);
+	// Laplacian filter divided by thresholding
+	cv::Mat laplace = cv::Mat::zeros(height, width, CV_32FC3);
 	for(int c=0; c<channel; c++) {
-		// 勾配場の計算と閾値処理
+		// Compute gradient and thresholding
 		cv::Mat grad = cv::Mat::zeros(height, width, CV_32FC2);
 		for(int y=0; y<height-1; y++) {
 			for(int x=0; x<width-1; x++) {
 				float dx = out.at<float>(y, (x+1)*channel+c) - out.at<float>(y, x*channel+c);
 				float dy = out.at<float>(y+1, x*channel+c) - out.at<float>(y, x*channel+c);
-				if(fabs(dx) > theta) {
+				if(fabs(dx) > threshold) {
 					grad.at<float>(y, x*2+0) = dx;
 				}
 
-				if(fabs(dy) > theta) {
+				if(fabs(dy) > threshold) {
 					grad.at<float>(y, x*2+1) = dy;
 				}
 			}
 		}
 
-		// 勾配場のgradientを計算
+		// Compute gradient again
 		for(int y=1; y<height; y++) {
 			for(int x=1; x<width; x++) {
 				float ddx = grad.at<float>(y, x*2+0) - grad.at<float>(y, (x-1)*2+0);
@@ -65,16 +61,16 @@ int main(int argc, char** argv) {
 		}
 	}
 
-	// ガウス・ザイデル法
+	// Gauss Seidel method
 	clcnst::gauss_seidel(out, laplace, 20);
 
-	// 値の正規化
+	// Normalization
 	clcnst::normalize(out, out);
 
-	// 値の指数をとる
+	// Compute exponential
 	clcnst::exponential(out, out);
 
-	// 結果の出力
+	// Display result
 	cv::namedWindow("Input");
 	cv::namedWindow("Output");
 	cv::imshow("Input", img);
@@ -82,7 +78,10 @@ int main(int argc, char** argv) {
 	cv::waitKey(0);
 	cv::destroyAllWindows();
 
+	// Save output
+	cout << "[BlakeAlgorithm] save as: ";
+	cin >> ofname;
 	out.convertTo(out, CV_8UC3, 255.0);
-	cv::imwrite(argv[2], out);
+	cv::imwrite(ofname, out);
 
 }

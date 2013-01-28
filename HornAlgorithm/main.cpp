@@ -1,29 +1,35 @@
 #include <iostream>
+#include <string>
 using namespace std;
 
 #include <opencv2\opencv.hpp>
 
 #include "../clcnst/clcnst.h"
 
+float threshold;
+string ifname, ofname;
+
 int main(int argc, char** argv) {
-	if(argc < 3) {
-		cout << "usage: HornAlgorithm.exe [input image] [output image] [threshold]" << endl;
+	if(argc < 1) {
+		cout << "usage: HornAlgorithm.exe" << endl;
 		return -1;
 	}
 
-	cv::Mat img = cv::imread(argv[1], CV_LOAD_IMAGE_COLOR);
+	cout << "[HornAlgorithm] input file name: ";
+	cin >> ifname;
+
+	cv::Mat img = cv::imread(ifname, CV_LOAD_IMAGE_COLOR);
 	if(img.empty()) {
-		cout << "Failed to load file \"" << argv[1] << "\"." << endl;
+		cout << "Failed to load file \"" << ifname << "\"." << endl;
 		return -1;
 	}
 	int width = img.cols;
 	int height = img.rows;
 	int channel = img.channels();
 	img.convertTo(img, CV_32FC3, 1.0 / 255.0);
-	cout << "Image file \"" << argv[1] << "\" has been loaded." << endl;
 
-	float theta = (argc > 3) ? atof(argv[3]) : 0.05f;
-	printf("threshold = %f\n", theta);
+	cout << "[HornAlgorithm] input threshold value (default = 0.05): ";
+	cin >> threshold;
 
 	cv::Mat out, laplace;
 
@@ -34,7 +40,7 @@ int main(int argc, char** argv) {
 	clcnst::laplacian(out, laplace);
 
 	// 閾値処理
-	clcnst::threshold(laplace, laplace, theta);
+	clcnst::threshold(laplace, laplace, threshold);
 		
 	// ガウス・ザイデル法
 	clcnst::gauss_seidel(out, laplace, 20);		
@@ -52,6 +58,9 @@ int main(int argc, char** argv) {
 	cv::waitKey(0);
 	cv::destroyAllWindows();
 
+	// Save output
+	cout << "[HornAlgorithm] save as: ";
+	cin >> ofname;
 	out.convertTo(out, CV_8UC3, 255.0);
-	cv::imwrite(argv[2], out);
+	cv::imwrite(ofname, out);
 }
