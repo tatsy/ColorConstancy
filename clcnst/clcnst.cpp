@@ -230,3 +230,25 @@ __PORT void clcnst::normalize(cv::Mat& input, cv::Mat& output, float lower, floa
 		}
 	}
 }
+
+__PORT void clcnst::hef(cv::Mat& input, cv::Mat& output, float lower, float upper, float threshold) {
+	cv::Mat* i_ptr = &input;
+	int width = i_ptr->cols;
+	int height = i_ptr->rows;
+	int channel = i_ptr->channels();
+
+	cv::Mat* o_ptr = &output;
+	if(i_ptr != o_ptr) {
+		*o_ptr = cv::Mat(height, width, CV_MAKETYPE(CV_32F, channel));
+	}
+
+	for(int y=0; y<height; y++) {
+		for(int x=0; x<width; x++) {
+			float r = sqrt((float)(x*x + y*y));
+			double coeff = (1.0 - 1.0 / (1.0 + exp(r - threshold))) * (upper - lower) + lower;
+			for(int c=0; c<channel; c++) {
+				o_ptr->at<float>(y, x*channel+c) = coeff * i_ptr->at<float>(y, x*channel+c);
+			}
+		}
+	}
+}

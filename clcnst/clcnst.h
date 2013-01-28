@@ -46,6 +46,9 @@ public:
 	
 	// Normalize output range into [lower, upper]
 	__PORT static void normalize(cv::Mat& input, cv::Mat& output, float lower, float upper);
+
+	// High emphasis filter
+	__PORT static void hef(cv::Mat& input, cv::Mat& output, float lower, float upper, float threshold);
 };
 
 #endif

@@ -28,7 +28,7 @@ int main(int argc, char** argv) {
 	clcnst::logarithm(img, out);
 
 	// ガウシアン・フィルタをかける
-	clcnst::gaussian(out, gauss, 1.0f, 5);
+	clcnst::gaussian(out, gauss, 0.5f, 5);
 
 	// 引き算
 	cv::subtract(out, gauss, out);
@@ -40,7 +40,7 @@ int main(int argc, char** argv) {
 	clcnst::exponential(out, out);
 
 	// 正規化
-	clcnst::normalize(out, out, 0.0f, 1.0f);
+	//clcnst::normalize(out, out, 0.0f, 1.0f);
 
 	// 結果の出力
 	cv::namedWindow("Input");
