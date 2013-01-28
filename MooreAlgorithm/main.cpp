@@ -6,8 +6,12 @@ using namespace std;
 #include "../clcnst/clcnst.h"
 
 int main(int argc, char** argv) {
+
+	// Check input command arguments
 	if(argc < 3) {
-		cout << "usage: MooreAlgorithm.exe [input image] [output image] [threshold]" << endl;
+		cout << "usage: MooreAlgorithm.exe [input image] [output image] [sigma for Gaussian] [option]" << endl;
+		cout << "Options: " << endl;
+		cout << "  -e : Use extended Moore's algorithm" << endl;
 		return -1;
 	}
 
@@ -24,25 +28,48 @@ int main(int argc, char** argv) {
 
 	cv::Mat out, gauss;
 
-	// 入力画像の対数をとる
-	clcnst::logarithm(img, out);
+	// Apply Gaussian filter
+	float sigma = argc > 3 ? (float)atof(argv[3]) : 1.0f;
+	sigma *= (float)max(width, height);
 
-	// ガウシアン・フィルタをかける
-	clcnst::gaussian(out, gauss, 0.5f, 5);
+	cv::GaussianBlur(img, gauss, cv::Size(0, 0), sigma);
 
-	// 引き算
-	cv::subtract(out, gauss, out);
+	if(argc > 4 && !strcmp(argv[4], "-e")) {
+		cv::Mat gray;
+		cv::cvtColor(img, gray, CV_BGR2GRAY);
 
-	// オフセット
-	cv::subtract(out, cv::Mat::ones(height, width, CV_32FC3), out);
+		cv::Mat edge = cv::Mat::zeros(height, width, CV_32FC1);
+		for(int y=1; y<height-1; y++) {
+			for(int x=1; x<width-1; x++) {
+				float dx = (gray.at<float>(y, x+1) - gray.at<float>(y, x-1)) / 2.0f;
+				float dy = (gray.at<float>(y+1, x) - gray.at<float>(y-1, x)) / 2.0f;
+				edge.at<float>(y, x) = sqrt(dx * dx + dy * dy);
+			}
+		}
 
-	// 指数を取る
-	clcnst::exponential(out, out);
+		cv::GaussianBlur(edge, edge, cv::Size(0, 0), sigma);
+		cv::namedWindow("Edge");
+		cv::imshow("Edge", edge);
+		
+		for(int y=0; y<height; y++) {
+			for(int x=0; x<width; x++) {
+				for(int c=0; c<channel; c++) {
+					gauss.at<float>(y, x*channel+c) *= edge.at<float>(y, x);
+				}
+			}
+		}
+	}
 
-	// 正規化
-	//clcnst::normalize(out, out, 0.0f, 1.0f);
+	// Subtraction
+	cv::subtract(img, gauss, out);
 
-	// 結果の出力
+	// Offset reflectance
+	out.convertTo(out, CV_32FC3, 1.0, -1.0);
+
+	// Normalization
+	clcnst::normalize(out, out, 0.0f, 1.0f);
+
+	// Display result
 	cv::namedWindow("Input");
 	cv::namedWindow("Output");
 	cv::imshow("Input", img);
@@ -50,6 +77,7 @@ int main(int argc, char** argv) {
 	cv::waitKey(0);
 	cv::destroyAllWindows();
 
+	// Save output image
 	out.convertTo(out, CV_8UC3, 255.0);
 	cv::imwrite(argv[2], out);
 }
