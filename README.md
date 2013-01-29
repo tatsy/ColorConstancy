@@ -2,7 +2,7 @@
  Color Constancy Algorithms
 ************************************************************
 
-1. Overview 
+#. Overview 
 
 This project contains implementations of color constancy algorithms.
 This contains following algorithms:
@@ -16,10 +16,18 @@ All of the codes are dependent on OpenCV 2.4 (maybe it
 will work with older varsions as well). Each folder named
 with aforementioned algorithm containes "main.cpp."
 These programes include header "clcnst.h" that is 
-in the folder named "clcnst". 
+in the folder named "clcnst".
 
 
-2. Copyright
+# . Installation
+Please execute following command.
+
+$ make all
+$ LD_LIBRARY_PAH=${LD_LIBRARY_PATH}:`pwd`/bin/
+$ export LD_LIBRARY_PAH
+
+
+#. Copyright
 
 This code is this programmed by 'tatsy'. Copyright of
 this code belongs to 'tatsy'. Anyway, you can use this
