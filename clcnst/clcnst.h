@@ -4,10 +4,27 @@
 #include <opencv2\opencv.hpp>
 #include <cassert>
 
+#if defined(WIN32)		// MS Windows
+#define IDAAPI __stdcall
 #ifdef __DLL_EXPORT
 #define __PORT __declspec(dllexport)
 #else
 #define __PORT __declspec(dllimport)
+#endif
+#elif defined(__UNIX__)		// Unix
+#define IDAAPI
+#ifdef __MAC__			// Mac OS
+#define IDAMAN __attribute__((visibility("default")))
+#define IDA_LOCAL __attribute__((visibility("hidden")))
+#else		// Linux
+#if __GNUC__ >= 4
+#define IDAMAN __attribute__((visibility("default")))
+#define IDA_LOCAL __attribute__((visibility("hidden")))
+#else
+#define IDAMAN
+#define IDA_LOCAL
+#endif
+#endif
 #endif
 
 // Utility functions for color constancy projects
