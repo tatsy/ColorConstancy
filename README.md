@@ -2,7 +2,7 @@
 Color Constancy Algorithms 
 ***
 
-1. Overview 
+1. Overview
 
     This project contains implementations of color constancy algorithms.
      This contains following algorithms:
@@ -18,13 +18,13 @@ Color Constancy Algorithms
     These programes include header "clcnst.h" that is 
     in the folder named "clcnst".
 
-
 1. Installation
+
     Please execute following command.
 
         $ make all
         $ LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:`pwd`/bin/
-        $ export LD_LIBRARY_PAH
+        $ export LD_LIBRARY_PATH
 
 
 1. Copyright
@@ -32,7 +32,6 @@ Color Constancy Algorithms
     This code is this programmed by 'tatsy'. Copyright of
     this code belongs to 'tatsy'. Anyway, you can use this
     code for any purpose :-) 
-
     If you are satisfied with the program and kind enough of
     cheering me up, please contact me from my github account
     https://github.com/tatsy/. You can find my email address here.
