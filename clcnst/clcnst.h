@@ -1,7 +1,7 @@
 #ifndef _CLCNST_H_
 #define _CLCNST_H_
 
-#include <opencv2\opencv.hpp>
+#include <opencv2/opencv.hpp>
 #include <cassert>
 
 #if defined(WIN32)		// MS Windows

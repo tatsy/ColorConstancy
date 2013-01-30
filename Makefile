@@ -13,7 +13,8 @@ BLAKE		= $(BINDIR)BlakeAlgorithm
 MOORE		= $(BINDIR)MooreAlgorithm
 RAHMAN		= $(BINDIR)RahmanAlgorithm
 HOMO		= $(BINDIR)HomomorphicFilter
-PROGRAMS	= $(SOBJ) $(HORN) $(BLAKE) $(MOORE) $(RAHMAN) $(HOMO)
+FAUG		= $(BINDIR)FaugerasAlgorithm
+PROGRAMS	= $(SOBJ) $(HORN) $(BLAKE) $(MOORE) $(RAHMAN) $(HOMO) $(FAUG)
 
 all: $(PROGRAMS)
 
@@ -46,6 +47,11 @@ $(RAHMAN): $(SRC_RAHMAN)
 SRC_HOMO			= ./HomomorphicFilter/main.cpp
 $(HOMO): $(SRC_HOMO)
 	$(CC) -o $(HOMO) $(SRC_HOMO) $(INC) $(LDFLAGS) $(LIBS) $(LIB_CLCNST)
+	
+# Faugeras Filter
+SRC_FAUG			= ./FaugerasAlgorithm/main.cpp
+$(HOMO): $(SRC_FAUG)
+	$(CC) -o $(FAUG) $(SRC_FAUG) $(INC) $(LDFLAGS) $(LIBS) $(LIB_CLCNST)
 
 clean:
 	rm -rf ./bin
