@@ -11,20 +11,8 @@
 #else
 #define __PORT __declspec(dllimport)
 #endif
-#elif defined(__UNIX__)		// Unix
-#define IDAAPI
-#ifdef __MAC__			// Mac OS
-#define IDAMAN __attribute__((visibility("default")))
-#define IDA_LOCAL __attribute__((visibility("hidden")))
-#else		// Linux
-#if __GNUC__ >= 4
-#define IDAMAN __attribute__((visibility("default")))
-#define IDA_LOCAL __attribute__((visibility("hidden")))
 #else
-#define IDAMAN
-#define IDA_LOCAL
-#endif
-#endif
+#define __PORT
 #endif
 
 // Utility functions for color constancy projects
