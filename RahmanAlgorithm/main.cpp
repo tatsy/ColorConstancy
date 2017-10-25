@@ -42,7 +42,7 @@ int main(int argc, char** argv) {
 
 	vector<float> sigmas = vector<float>(ns);
 	sigmas[0] = sigma * (float)max(height, width);
-	for(int i=1; i<=ns; i++) sigmas[i] = sigmas[i-1] * scale;
+	for(int i=1; i<ns; i++) sigmas[i] = sigmas[i-1] * scale;
 
 	// Accumulate multiscale results of Moore's algorithm
 	cv::Mat out, tmp, gauss;
